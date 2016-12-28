@@ -28,6 +28,20 @@ describe Admin::CategoriesController do
     end
   end
 
+  describe "test_create" do
+    before(:each) do
+      post :create, category: {name: 'Fun', description: 'test fun'}
+    end
+
+    it 'should redirect to new' do
+      assert_response :redirect, :action => 'new'
+    end
+
+    it 'should have the notice message' do
+      expect(flash[:notice]).to be_present
+    end
+  end
+
   describe "test_edit" do
     before(:each) do
       get :edit, :id => Factory(:category).id

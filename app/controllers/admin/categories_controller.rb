@@ -2,29 +2,9 @@ class Admin::CategoriesController < Admin::BaseController
   cache_sweeper :blog_sweeper
 
   def index; redirect_to :action => 'new' ; end
-  def edit; new_or_edit;  end
 
-  def new
-    respond_to do |format|
-      format.html { new_or_edit }
-      format.js {
-        @category = Category.new
-      }
-    end
-  end
-
-  def destroy
-    @record = Category.find(params[:id])
-    return(render 'admin/shared/destroy') unless request.post?
-
-    @record.destroy
-    redirect_to :action => 'new'
-  end
-
-  private
-
-  def new_or_edit
-    @categories = Category.find(:all)
+  def edit
+    set_categories
     @category_id = params[:id]
 
     if @category_id.present?
@@ -42,8 +22,42 @@ class Admin::CategoriesController < Admin::BaseController
         end
         return
       end
+    else
+      redirect_to :action => 'create', category: params[:category]
+      return
     end
     render 'new'
+
+  end
+
+  def create
+    @category = Category.create(params[:category])
+    save_category
+  end
+
+  def new
+    set_categories
+
+    respond_to do |format|
+      format.html { }
+      format.js {
+        @category = Category.new
+      }
+    end
+  end
+
+  def destroy
+    @record = Category.find(params[:id])
+    return(render 'admin/shared/destroy') unless request.post?
+
+    @record.destroy
+    redirect_to :action => 'new'
+  end
+
+  private
+
+  def set_categories
+    @categories = Category.find(:all)
   end
 
   def save_category
