@@ -20,6 +20,11 @@ module NavigationHelpers
     when /^the new category page$/
       '/admin/categories/new'
 
+    when /^the edit article page for \"(.*)\"$/
+      article_title = $1
+      article = Article.find_by_title(article_title)
+      "/admin/content/edit/#{article.id}"
+
     # Add more mappings here.
     # Here is an example that pulls values out of the Regexp:
     #

@@ -21,6 +21,36 @@ describe Article do
     end
   end
 
+  describe "merge_with" do
+    it "fails if the article to merge doesn't exist" do
+      article = Article.create(:title => "space separated")
+      expect(article.merge_with(0)).to be_false
+    end
+
+    it "combines the content of the two articles" do
+      first_article = Article.create(:title => "space separated", body: 'one')
+      second_article = Article.create(:title => 'space together', body: 'two')
+
+      expect{first_article.merge_with(second_article.id)}.to change{ Article.count }.by (-1)
+
+      expect(first_article.body).to include('two')
+    end
+
+    it "combines the comments on two articles" do
+      first_article = Article.create(:title => "space separated")
+      second_article = Article.create(:title => 'space together')
+      first_article.comments.create!(body: 'This is a comment on one', author: 'jake')
+      second_article.comments.create!(body: 'Merge comment', author: 'jane')
+
+
+      first_article.merge_with(second_article.id)
+
+      expect(first_article.reload.comments.count).to eq(2)
+
+    end
+
+  end
+
   it "test_content_fields" do
     a = Article.new
     assert_equal [:body, :extended], a.content_fields
@@ -184,25 +214,25 @@ describe Article do
   ### XXX: Should we have a test here?
   it "test_send_multiple_pings" do
   end
-  
+
   describe "Testing redirects" do
     it "a new published article gets a redirect" do
       a = Article.create(:title => "Some title", :body => "some text", :published => true)
       a.redirects.first.should_not be_nil
       a.redirects.first.to_path.should == a.permalink_url
     end
-    
-    it "a new unpublished article should not get a redirect" do 
+
+    it "a new unpublished article should not get a redirect" do
       a = Article.create(:title => "Some title", :body => "some text", :published => false)
       a.redirects.first.should be_nil
     end
-    
+
     it "Changin a published article permalink url should only change the to redirection" do
       a = Article.create(:title => "Some title", :body => "some text", :published => true)
       a.redirects.first.should_not be_nil
       a.redirects.first.to_path.should == a.permalink_url
       r  = a.redirects.first.from_path
-      
+
       a.permalink = "some-new-permalink"
       a.save
       a.redirects.first.should_not be_nil
@@ -571,7 +601,7 @@ describe Article do
     describe "#find_by_permalink" do
       it "uses UTC to determine correct day" do
         @a.save
-        a = Article.find_by_permalink :year => 2011, :month => 2, :day => 21, :permalink => 'a-big-article' 
+        a = Article.find_by_permalink :year => 2011, :month => 2, :day => 21, :permalink => 'a-big-article'
         a.should == @a
       end
     end
@@ -592,7 +622,7 @@ describe Article do
     describe "#find_by_permalink" do
       it "uses UTC to determine correct day" do
         @a.save
-        a = Article.find_by_permalink :year => 2011, :month => 2, :day => 22, :permalink => 'a-big-article' 
+        a = Article.find_by_permalink :year => 2011, :month => 2, :day => 22, :permalink => 'a-big-article'
         a.should == @a
       end
     end

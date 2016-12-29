@@ -4,6 +4,49 @@ describe Admin::ContentController do
   render_views
 
   # Like it's a shared, need call everywhere
+
+  describe "merge" do
+    context "user is admin" do
+      before do
+        Factory(:blog)
+        @user = Factory(:user, :profile => Factory(:profile_admin, :label => Profile::ADMIN))
+        request.session = { :user => @user.id }
+        @article = Factory(:article, title: 'Test article 1', body: 'hi')
+        @article_to_merge = Factory(:article, title: 'Test article 2', body: 'hi2')
+      end
+
+      it "combines content of two articles" do
+        post 'merge', id: @article.id, merge_article: { id: @article_to_merge.id }
+        expect(@article.reload.body).to include('hi2')
+        expect(flash[:error]).to_not be_present
+      end
+
+      it "doesn't do anything if the article id is the same" do
+        post 'merge', id: @article.id, merge_article: { id: @article.id }
+        expect(flash[:error]).to be_present
+      end
+    end
+
+    context "user is not an admin" do
+      before do
+        Factory(:blog)
+        @non_admin_user = Factory(:user, profile: Factory(:profile, :label => 'notadmin'))
+        request.session = { :user => @non_admin_user.id }
+        @article = Factory(:article, title: 'Test article 1', body: 'hi')
+        @article_to_merge = Factory(:article, title: 'Test article 2', body: 'hi2')
+      end
+
+      it "does not combine content of two articles" do
+        post 'merge', id: @article.id, merge_article: { id: @article_to_merge.id }
+        expect(@article.body).to_not include('hi2')
+      end
+
+    end
+
+
+
+  end
+
   shared_examples_for 'index action' do
 
     it 'should render template index' do
@@ -48,7 +91,7 @@ describe Admin::ContentController do
       response.should render_template('index')
       response.should be_success
     end
-    
+
     it 'should restrict to withdrawn articles' do
       article = Factory(:article, :state => 'withdrawn', :published_at => '2010-01-01')
       get :index, :search => {:state => 'withdrawn'}
@@ -56,7 +99,7 @@ describe Admin::ContentController do
       response.should render_template('index')
       response.should be_success
     end
-  
+
     it 'should restrict to withdrawn articles' do
       article = Factory(:article, :state => 'withdrawn', :published_at => '2010-01-01')
       get :index, :search => {:state => 'withdrawn'}

@@ -4,3 +4,13 @@
   <%= render :partial => "form" %>
 
 <% end %>
+
+<% if @show_merge_section %>
+  <h2> Merge Articles </h2>
+
+  <%= form_tag({ :action => "merge", :id => @article.id}, :id => "article_merge_form", :enctype => "multipart/form-data", :class => className) do %>
+
+    <%= render :partial => "merge_form" %>
+
+  <% end %>
+<% end %>
